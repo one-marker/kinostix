@@ -1,20 +1,9 @@
 {
-  "name": "peerflix",
-  "description": "Streaming torrent client for Node.js",
-  "version": "0.39.0",
-  "author": "Mathias Buus (@mafintosh)",
-  "license": "MIT",
-  "homepage": "https://github.com/mafintosh/peerflix",
-  "main": "index.js",
-  "bugs": {
-    "url": "https://github.com/mafintosh/peerflix/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/mafintosh/peerflix.git"
-  },
+  "name": "kinostick-peerflix",
+  "description": "Streaming torrent client module",
+  "version": "0.0.3",
   "bin": {
-    "peerflix": "./app.js"
+    "kinostick-peerflix": "./app.js"
   },
   "dependencies": {
     "buffer-from": "^1.0.0",
@@ -23,10 +12,10 @@
     "keypress": "^0.2.1",
     "mime": "^2.2.0",
     "network-address": "^1.1.0",
-    "nexe": "^4.0.0-rc.2",
+    "nexe": "^1.1.6",
     "numeral": "^2.0.6",
-    "open": "0.0.5",
-    "optimist": "^0.6.1",
+    "open": "^9.1.0",
+    "optimist": "^0.5.2",
     "parse-torrent": "^5.4.0",
     "pump": "^2.0.0",
     "range-parser": "^1.0.0",
@@ -36,10 +25,10 @@
     "xtend": "^4.0.0"
   },
   "devDependencies": {
-    "standard": "^10.0.3"
+    "standard": "^17.0.0"
   },
   "optionalDependencies": {
-    "airplayer": "^2.0.0"
+    "airplayer": "^1.0.0"
   },
   "scripts": {
     "test": "standard"

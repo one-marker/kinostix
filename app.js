@@ -9,12 +9,9 @@ var address = require('network-address')
 var proc = require('child_process')
 var peerflix = require('./')
 var keypress = require('keypress')
-// var openUrl = require('open')
 var inquirer = require('inquirer')
 var parsetorrent = require('parse-torrent')
 var bufferFrom = require('buffer-from')
-
-// var path = require('path')
 
 process.title = 'peerflix'
 
@@ -22,19 +19,11 @@ var argv = rc('peerflix', {}, optimist
   .usage('Usage: $0 magnet-link-or-torrent [options]')
   .alias('c', 'connections').describe('c', 'max connected peers').default('c', os.cpus().length > 1 ? 100 : 30)
   .alias('p', 'port').describe('p', 'change the http port').default('p', 8888)
+  .alias('u', 'url').describe('u', 'change the http url').default('u', '/')
   .alias('i', 'index').describe('i', 'changed streamed file (index)')
   .alias('l', 'list').describe('l', 'list available files with corresponding index').boolean('l')
   .alias('t', 'subtitles').describe('t', 'load subtitles file')
   .alias('q', 'quiet').describe('q', 'be quiet').boolean('v')
-  .alias('v', 'vlc').describe('v', 'autoplay in vlc*').boolean('v')
-  .alias('s', 'airplay').describe('s', 'autoplay via AirPlay').boolean('a')
-  .alias('m', 'mplayer').describe('m', 'autoplay in mplayer*').boolean('m')
-  .alias('g', 'smplayer').describe('g', 'autoplay in smplayer*').boolean('g')
-  .describe('mpchc', 'autoplay in MPC-HC player*').boolean('boolean')
-  .describe('potplayer', 'autoplay in Potplayer*').boolean('boolean')
-  .alias('k', 'mpv').describe('k', 'autoplay in mpv*').boolean('k')
-  .alias('o', 'omx').describe('o', 'autoplay in omx**').boolean('o')
-  .alias('w', 'webplay').describe('w', 'autoplay in webplay').boolean('w')
   .alias('j', 'jack').describe('j', 'autoplay in omx** using the audio jack').boolean('j')
   .alias('f', 'path').describe('f', 'change buffer file path')
   .alias('b', 'blocklist').describe('b', 'use the specified blocklist')
@@ -56,7 +45,6 @@ if (argv.version) {
 }
 
 var filename = argv._[0]
-// var onTop = !argv.d
 
 if (!filename) {
   optimist.showHelp()
@@ -68,40 +56,6 @@ if (!filename) {
   console.error('** OMX player is the default Raspbian video player\n')
   process.exit(1)
 }
-
-// var VLC_ARGS = '-q' + (onTop ? ' --video-on-top' : '') + ' --play-and-exit'
-// var OMX_EXEC = argv.jack ? 'omxplayer -r -o local ' : 'omxplayer -r -o hdmi '
-// var MPLAYER_EXEC = 'mplayer ' + (onTop ? '-ontop' : '') + ' -really-quiet -noidx -loop 0 '
-// var SMPLAYER_EXEC = 'smplayer ' + (onTop ? '-ontop' : '')
-// var MPV_EXEC = 'mpv ' + (onTop ? '--ontop' : '') + ' --really-quiet --loop=no '
-// var MPC_HC_ARGS = '/play'
-// var POTPLAYER_ARGS = ''
-//
-// var enc = function (s) {
-//   return /\s/.test(s) ? JSON.stringify(s) : s
-// }
-//
-// if (argv.t) {
-//   VLC_ARGS += ' --sub-file=' + (process.platform === 'win32' ? argv.t : enc(argv.t))
-//   OMX_EXEC += ' --subtitles ' + enc(argv.t)
-//   MPLAYER_EXEC += ' -sub ' + enc(argv.t)
-//   SMPLAYER_EXEC += ' -sub ' + enc(argv.t)
-//   MPV_EXEC += ' --sub-file=' + enc(argv.t)
-//   POTPLAYER_ARGS += ' ' + enc(argv.t)
-// }
-//
-// if (argv._.length > 1) {
-//   var _args = argv._
-//   _args.shift()
-//   var playerArgs = _args.join(' ')
-//   VLC_ARGS += ' ' + playerArgs
-//   OMX_EXEC += ' ' + playerArgs
-//   MPLAYER_EXEC += ' ' + playerArgs
-//   SMPLAYER_EXEC += ' ' + playerArgs
-//   MPV_EXEC += ' ' + playerArgs
-//   MPC_HC_ARGS += ' ' + playerArgs
-//   POTPLAYER_ARGS += ' ' + playerArgs
-// }
 
 var watchVerifying = function (engine) {
   var showVerifying = function (i) {
@@ -215,8 +169,7 @@ var ontorrent = function (torrent) {
   engine.server.on('listening', function () {
 
     var host = argv.hostname || address()
-    var href = 'http://' + host + ':' + engine.server.address().port + '/'
-    // var localHref = 'http://localhost:' + engine.server.address().port + '/'
+    var href = 'http://' + host + ':' + engine.server.address().port + argv.url
     var filename = engine.server.index.name.split('/').pop().replace(/\{|\}/g, '')
     var filelength = engine.server.index.length
     var player = null
@@ -224,119 +177,12 @@ var ontorrent = function (torrent) {
     var timePaused = 0
     var pausedAt = null
 
-    // VLC_ARGS += ' --meta-title="' + filename.replace(/"/g, '\\"') + '"'
 
     if (argv.all) {
       filename = engine.torrent.name
       filelength = engine.torrent.length
       href += '.m3u'
-      // localHref += '.m3u'
     }
-
-    // var registry = function (hive, key, name, cb) {
-    //   var Registry = require('winreg')
-    //   var regKey = new Registry({
-    //     hive: Registry[hive],
-    //     key: key
-    //   })
-    //   regKey.get(name, cb)
-    // }
-
-    // if (argv.vlc && process.platform === 'win32') {
-    //   player = 'vlc'
-    //   var runVLC = function (regItem) {
-    //     VLC_ARGS = VLC_ARGS.split(' ')
-    //     VLC_ARGS.unshift(localHref)
-    //     proc.execFile(regItem.value + path.sep + 'vlc.exe', VLC_ARGS)
-    //   }
-    //   registry('HKLM', '\\Software\\VideoLAN\\VLC', 'InstallDir', function (err, regItem) {
-    //     if (err) {
-    //       registry('HKLM', '\\Software\\WOW6432Node\\VideoLAN\\VLC', 'InstallDir', function (err, regItem) {
-    //         if (err) return
-    //         runVLC(regItem)
-    //       })
-    //     } else {
-    //       runVLC(regItem)
-    //     }
-    //   })
-    // } else if (argv.mpchc && process.platform === 'win32') {
-    //   player = 'mph-hc'
-    //   registry('HKCU', '\\Software\\MPC-HC\\MPC-HC', 'ExePath', function (err, regItem) {
-    //     if (err) return
-    //     proc.exec('"' + regItem.value + '" "' + localHref + '" ' + MPC_HC_ARGS)
-    //   })
-    // } else if (argv.potplayer && process.platform === 'win32') {
-    //   player = 'potplayer'
-    //   var runPotPlayer = function (regItem) {
-    //     proc.exec('"' + regItem.value + '" "' + localHref + '" ' + POTPLAYER_ARGS)
-    //   }
-    //   registry('HKCU', '\\Software\\DAUM\\PotPlayer64', 'ProgramPath', function (err, regItem) {
-    //     if (err) {
-    //       registry('HKCU', '\\Software\\DAUM\\PotPlayer', 'ProgramPath', function (err, regItem) {
-    //         if (err) return
-    //         runPotPlayer(regItem)
-    //       })
-    //     } else {
-    //       runPotPlayer(regItem)
-    //     }
-    //   })
-    // } else {
-    //   if (argv.vlc) {
-    //     player = 'vlc'
-    //     var root = '/Applications/VLC.app/Contents/MacOS/VLC'
-    //     var home = (process.env.HOME || '') + root
-    //     var vlc = proc.exec('vlc ' + VLC_ARGS + ' ' + localHref + ' || ' + root + ' ' + VLC_ARGS + ' ' + localHref + ' || ' + home + ' ' + VLC_ARGS + ' ' + localHref, function (error, stdout, stderror) {
-    //       if (error) {
-    //         process.exit(0)
-    //       }
-    //     })
-    //
-    //     vlc.on('exit', function () {
-    //       if (!argv.n && argv.quit !== false) process.exit(0)
-    //     })
-    //   }
-    // }
-    //
-    // if (argv.omx) {
-    //   player = 'omx'
-    //   var omx = proc.exec(OMX_EXEC + ' ' + localHref)
-    //   omx.on('exit', function () {
-    //     if (!argv.n && argv.quit !== false) process.exit(0)
-    //   })
-    // }
-    // if (argv.mplayer) {
-    //   player = 'mplayer'
-    //   var mplayer = proc.exec(MPLAYER_EXEC + ' ' + localHref)
-    //   mplayer.on('exit', function () {
-    //     if (!argv.n && argv.quit !== false) process.exit(0)
-    //   })
-    // }
-    // if (argv.smplayer) {
-    //   player = 'smplayer'
-    //   var smplayer = proc.exec(SMPLAYER_EXEC + ' ' + localHref)
-    //   smplayer.on('exit', function () {
-    //     if (!argv.n && argv.quit !== false) process.exit(0)
-    //   })
-    // }
-    // if (argv.mpv) {
-    //   player = 'mpv'
-    //   var mpv = proc.exec(MPV_EXEC + ' ' + localHref)
-    //   mpv.on('exit', function () {
-    //     if (!argv.n && argv.quit !== false) process.exit(0)
-    //   })
-    // }
-    // if (argv.webplay) {
-    //   player = 'webplay'
-    //   openUrl('https://85d514b3e548d934d8ff7c45a54732e65a3162fe.htmlb.in/#' + localHref)
-    // }
-    // if (argv.airplay) {
-    //   var list = require('airplayer')()
-    //   list.once('update', function (player) {
-    //     airplayServer = player
-    //     list.destroy()
-    //     player.play(href)
-    //   })
-    // }
 
     if (argv['on-listening']) proc.exec(argv['on-listening'] + ' ' + href)
 

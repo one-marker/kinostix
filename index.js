@@ -6,7 +6,6 @@ var xtend = require('xtend')
 var url = require('url')
 var mime = require('mime')
 var pump = require('pump')
-const clivas = require('clivas')
 
 var parseBlocklist = function (filename) {
   // TODO: support gzipped files
@@ -33,6 +32,7 @@ var createServer = function (e, opts) {
   var index = opts.index
   var getType = opts.type || mime.getType.bind(mime)
   var filter = opts.filter || truthy
+  var streamUrl = opts.url
 
   var onready = function () {
     if (typeof index !== 'number') {
@@ -50,17 +50,14 @@ var createServer = function (e, opts) {
 
   if (e.torrent) onready()
   else e.on('ready', onready)
-
   server.on('request', function (request, response) {
     var u = url.parse(request.url)
     var host = request.headers.host || 'localhost'
 
     var toPlaylist = function () {
       var toEntry = function (file, i) {
-        clivas.line(`#EXTINF:-1,` + file.path + '\n' + 'http://' + host + '/1/' + i)
-        return '#EXTINF:-1,' + file.path + '\n' + 'http://' + host + '/1/' + i
+        return '#EXTINF:-1,' + file.path + '\n' + 'http://' + host + '/' + i
       }
-
       return '#EXTM3U\n' + e.files.filter(filter).map(toEntry).join('\n')
     }
 
@@ -113,7 +110,7 @@ var createServer = function (e, opts) {
     }
 
     if (request.headers.origin) response.setHeader('Access-Control-Allow-Origin', request.headers.origin)
-    if (u.pathname === '/1/') u.pathname = '/1/' + index
+
 
     if (u.pathname === '/favicon.ico') {
       response.statusCode = 404
@@ -121,7 +118,7 @@ var createServer = function (e, opts) {
       return
     }
 
-    if (u.pathname === '/1/.json') {
+    if (u.pathname === streamUrl + '/.json') {
       var json = toJSON()
       response.setHeader('Content-Type', 'application/json; charset=utf-8')
       response.setHeader('Content-Length', Buffer.byteLength(json))
@@ -129,7 +126,7 @@ var createServer = function (e, opts) {
       return
     }
 
-    if (u.pathname === '/1/.m3u') {
+    if (u.pathname === streamUrl + '/.m3u') {
       var playlist = toPlaylist()
       response.setHeader('Content-Type', 'application/x-mpegurl; charset=utf-8')
       response.setHeader('Content-Length', Buffer.byteLength(playlist))
@@ -137,8 +134,16 @@ var createServer = function (e, opts) {
       return
     }
 
+    if (u.pathname !== streamUrl) {
+      response.statusCode = 403
+      response.end()
+      return
+    }
+
+
     e.files.forEach(function (file, i) {
-      if (u.pathname.slice(1) === file.name) u.pathname = '/1/' + i
+      if (u.pathname.slice(1) === file.name) u.pathname = '/' + i
+      u.pathname = u.pathname = '/' + i
     })
 
     var i = Number(u.pathname.slice(1))
