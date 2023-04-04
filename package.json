@@ -1,9 +1,9 @@
 {
-  "name": "kinostick-peerflix",
+  "name": "kinostix",
   "description": "Streaming torrent client module",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "bin": {
-    "kinostick-peerflix": "./app.js"
+    "kinostix": "./app.js"
   },
   "dependencies": {
     "buffer-from": "^1.0.0",
