@@ -143,7 +143,7 @@ var createServer = function (e, opts) {
 
     e.files.forEach(function (file, i) {
       if (u.pathname.slice(1) === file.name) u.pathname = '/' + i
-      u.pathname = u.pathname = '/' + i
+      u.pathname = u.pathname = '/0'
     })
 
     var i = Number(u.pathname.slice(1))
