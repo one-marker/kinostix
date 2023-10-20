@@ -134,19 +134,21 @@ var createServer = function (e, opts) {
       return
     }
 
-    if (u.pathname !== streamUrl) {
+    if (u.pathname.substring(0,streamUrl.length) !== streamUrl) {
       response.statusCode = 403
       response.end()
       return
     }
 
 
+
     e.files.forEach(function (file, i) {
-      if (u.pathname.slice(1) === file.name) u.pathname = '/' + i
-      u.pathname = u.pathname = '/0'
+      if (u.pathname.slice(1) === file.name){
+        u.pathname =  pathname.substring(streamUrl.length-1)
+      }
     })
 
-    var i = Number(u.pathname.slice(1))
+    var i = u.pathname.substring(streamUrl.length)
 
     if (isNaN(i) || i >= e.files.length) {
       response.statusCode = 404
