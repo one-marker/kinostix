@@ -1,7 +1,8 @@
 {
   "name": "kinostix",
-  "description": "Streaming torrent client module",
-  "version": "0.0.5",
+  "description": "Streaming torrent client module. Multi",
+  "version": "0.0.8",
+
   "bin": {
     "kinostix": "./app.js"
   },

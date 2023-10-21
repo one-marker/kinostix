@@ -118,7 +118,7 @@ var createServer = function (e, opts) {
       return
     }
 
-    if (u.pathname === streamUrl + '/.json') {
+    if (u.pathname.includes('.json') && u.pathname.includes(streamUrl)) {
       var json = toJSON()
       response.setHeader('Content-Type', 'application/json; charset=utf-8')
       response.setHeader('Content-Length', Buffer.byteLength(json))
@@ -126,7 +126,7 @@ var createServer = function (e, opts) {
       return
     }
 
-    if (u.pathname === streamUrl + '/.m3u') {
+    if (u.pathname.includes(streamUrl)) {
       var playlist = toPlaylist()
       response.setHeader('Content-Type', 'application/x-mpegurl; charset=utf-8')
       response.setHeader('Content-Length', Buffer.byteLength(playlist))
@@ -134,7 +134,7 @@ var createServer = function (e, opts) {
       return
     }
 
-    if (u.pathname.substring(0,streamUrl.length) !== streamUrl) {
+    if (u.pathname.includes(streamUrl)) {
       response.statusCode = 403
       response.end()
       return
@@ -149,6 +149,10 @@ var createServer = function (e, opts) {
     })
 
     var i = u.pathname.substring(streamUrl.length)
+
+    if (i == '') {
+      i = 0
+    }
 
     if (isNaN(i) || i >= e.files.length) {
       response.statusCode = 404
